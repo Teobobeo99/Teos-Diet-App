@@ -11,8 +11,8 @@ Instructions for Claude when working on this project.
 ## Project basics
 - Static web app (HTML/CSS/JavaScript), hosted on GitHub Pages.
 - Mobile-first: it will mostly be used on Teo's iPhone.
-- AI features use the Gemini API (model: **Gemini 3.8 Flash**) with a key the user enters in Settings.
-- The core use case: open the app any time, tell Gemini what you ate or did, and it gets logged. Logging must be fast and front and center.
+- AI features use **Gemini** (default model Gemini 3.8 Flash) or **Groq**, chosen in Settings, with a key the user enters there.
+- The core use case: open the app any time, tell the AI what you ate or did, and it gets logged. Logging must be fast and front and center.
 
 ## Design rules
 The app uses a **pixel art + ASCII art** style. Avoid these:

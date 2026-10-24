@@ -3,7 +3,8 @@ import {
   db, save, replaceAll, defaults, weekStart, today, DAYS, DEFAULT_MODEL, esc, r, toast,
 } from './store.js';
 import { getUser, getStatus, onStatus, signIn, signOut } from './sync.js';
-import { listModels, pickModel, testModel, cleanKey } from './gemini.js';
+import { cleanKey } from './gemini.js';
+import { PROVIDERS, provider } from './ai.js';
 
 let root = null;
 let weekDraft = null; // null = this week follows defaults; else [dayIdx...]
@@ -21,41 +22,44 @@ export function init(el) {
   el.addEventListener('click', e => {
     const act = e.target.closest('[data-key]')?.dataset.key;
     if (act) keyAction(act);
+    const prov = e.target.closest('[data-prov]')?.dataset.prov;
+    if (prov && prov !== provider().id) { db.settings.provider = prov; keyMsg = ''; replacing = false; save(); toast(`Using ${PROVIDERS[prov].label}`); }
   });
   el.addEventListener('change', e => {
     if (e.target.id !== 's-model-pick') return;
-    db.settings.model = e.target.value; keyMsg = ''; save(); toast('Model switched');
+    db.settings[provider().fields.model] = e.target.value; keyMsg = ''; save(); toast('Model switched');
   });
   el.addEventListener('keydown', e => { if (e.target.id === 's-key-new' && e.key === 'Enter') { e.preventDefault(); keyAction('test'); } });
   onStatus(() => { const box = root?.querySelector('#s-account'); if (box) box.innerHTML = accountHTML(); });
   el.addEventListener('submit', e => { e.preventDefault(); doSave(); });
 }
 
-// ---------- Gemini key ----------
+// ---------- AI provider + key ----------
 // A key that passed the test is locked: only its last 4 characters are ever shown again.
 let keyBusy = false, keyMsg = '', replacing = false;
 const masked = k => '••••••••' + esc(k.slice(-4));
 
 function geminiHTML() {
-  const s = db.settings;
-  const locked = s.apiKey && s.keyOk && !replacing;
+  const s = db.settings, p = provider(), f = p.fields, key = s[f.key];
+  const tabs = `<div class="s-prov" role="group" aria-label="AI provider">${Object.values(PROVIDERS).map(x =>
+    `<button type="button" class="s-prov-btn" data-prov="${x.id}" aria-pressed="${x.id === p.id}">${x.label}</button>`).join('')}</div>`;
   const msg = keyMsg ? `<p class="s-note s-key-msg ${keyMsg.startsWith('✓') ? 'good-text' : 'over-text'}" role="status">${esc(keyMsg)}</p>` : '';
-  if (locked) {
-    const models = s.models?.length ? s.models : [{ id: s.model, label: s.model }];
-    return `
+  if (key && s[f.ok] && !replacing) {
+    const models = s[f.models]?.length ? s[f.models] : [{ id: s[f.model], label: s[f.model] }];
+    return `${tabs}
     <div class="s-key-locked px-box">
       <pre class="s-lock" aria-hidden="true"> .-.
  |=|
 [###]</pre>
       <div>
-        <p class="s-key-line display">Key locked</p>
-        <p class="num s-key-mask">${masked(s.apiKey)} <span class="good-text">✓ tested</span></p>
+        <p class="s-key-line display">${p.label} key locked</p>
+        <p class="num s-key-mask">${masked(key)} <span class="good-text">✓ tested</span></p>
         <p class="s-note muted">${getUser() ? 'Synced to your account.' : 'Saved on this device.'} It can't be shown again, only replaced.</p>
       </div>
     </div>
     <div class="s-field">
       <label for="s-model-pick">Model <span class="muted">▾ tap to change</span></label>
-      <select id="s-model-pick">${models.map(m => `<option value="${esc(m.id)}" ${m.id === s.model ? 'selected' : ''}>${esc(m.label)}${m.id === DEFAULT_MODEL ? ' ★' : ''}</option>`).join('')}</select>
+      <select id="s-model-pick">${models.map(m => `<option value="${esc(m.id)}" ${m.id === s[f.model] ? 'selected' : ''}>${esc(m.label)}</option>`).join('')}</select>
     </div>
     <div class="s-btns">
       <button type="button" data-key="retest" ${keyBusy ? 'disabled' : ''}>${keyBusy ? 'Testing…' : 'Test again'}</button>
@@ -63,14 +67,14 @@ function geminiHTML() {
       <button type="button" class="btn-danger" data-key="remove">Remove</button>
     </div>${msg}`;
   }
-  const old = s.apiKey && !replacing;
-  return `
+  const old = key && !replacing;
+  return `${tabs}
     <div class="s-field">
-      <label for="s-key-new">API key</label>
+      <label for="s-key-new">${p.label} API key</label>
       <input id="s-key-new" type="password" autocomplete="off" spellcheck="false" autocapitalize="off"
         placeholder="${old ? 'saved key · tap Test' : 'paste key'}" ${keyBusy ? 'disabled' : ''}>
-      <p class="s-note muted">Get one free at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
-        Testing finds which Gemini models it can use.</p>
+      <p class="s-note muted">Get one free at <a href="${p.keyUrl}" target="_blank" rel="noopener">${p.keyUrl.replace('https://', '')}</a>.
+        Testing finds which models it can use.</p>
     </div>
     <div class="s-btns">
       <button type="button" class="btn-primary" data-key="test" ${keyBusy ? 'disabled' : ''}>${keyBusy ? 'Testing…' : 'Test key'}</button>
@@ -81,26 +85,26 @@ function geminiHTML() {
 function paintGemini() { const box = root?.querySelector('#s-gemini'); if (box) box.innerHTML = geminiHTML(); }
 
 async function keyAction(act) {
-  const s = db.settings;
+  const s = db.settings, p = provider(), f = p.fields;
   if (act === 'replace') { replacing = true; keyMsg = ''; paintGemini(); root.querySelector('#s-key-new')?.focus(); return; }
   if (act === 'cancel') { replacing = false; keyMsg = ''; return paintGemini(); }
   if (act === 'remove') {
-    if (!confirm('Remove the Gemini key? Logging with Gemini stops until you add one again.')) return;
-    Object.assign(s, { apiKey: '', keyOk: false, models: [] }); keyMsg = ''; replacing = false; save(); return;
+    if (!confirm(`Remove the ${p.label} key? Logging with ${p.label} stops until you add one again.`)) return;
+    Object.assign(s, { [f.key]: '', [f.ok]: false, [f.models]: [] }); keyMsg = ''; replacing = false; save(); return;
   }
   // test / retest
   const typed = cleanKey(root.querySelector('#s-key-new')?.value);
-  const key = cleanKey(act === 'retest' ? s.apiKey : typed || (!replacing && s.apiKey));
+  const key = cleanKey(act === 'retest' ? s[f.key] : typed || (!replacing && s[f.key]));
   if (!key) { keyMsg = 'Paste a key first.'; return paintGemini(); }
   keyBusy = true; keyMsg = ''; paintGemini();
   try {
-    const models = await listModels(key);
-    if (!models.length) throw Object.assign(new Error('This key works, but no Gemini text models are available to it.'), { friendly: true });
-    const model = pickModel(models, s.model);
-    await testModel(key, model);
-    Object.assign(s, { apiKey: key, keyOk: true, model, models });
+    const models = await p.mod.listModels(key);
+    if (!models.length) throw Object.assign(new Error(`This key works, but no ${p.label} text models are available to it.`), { friendly: true });
+    const model = p.mod.pickModel(models, s[f.model]);
+    await p.mod.testModel(key, model);
+    Object.assign(s, { [f.key]: key, [f.ok]: true, [f.model]: model, [f.models]: models });
     replacing = false;
-    keyMsg = `✓ Works. Using ${models.find(m => m.id === model)?.label || model}. ${models.length} models available.`;
+    keyMsg = `✓ Works. Using ${models.find(m => m.id === model)?.label || model}. ${models.length} model${models.length === 1 ? '' : 's'} available.`;
     keyBusy = false; save();
   } catch (e) {
     keyBusy = false;
@@ -137,7 +141,7 @@ export function render(el = root) {
 
   el.innerHTML = `<div class="rule" data-label="ACCOUNT"></div>
   <div id="s-account">${accountHTML()}</div>
-  <div class="rule" data-label="GEMINI"></div>
+  <div class="rule" data-label="AI"></div>
   <div id="s-gemini">${geminiHTML()}</div>
   <form class="s-form" novalidate autocomplete="off">
     <div class="rule" data-label="DAILY TARGETS"></div>
@@ -329,8 +333,7 @@ function doSave() {
 // ---------- backup ----------
 const backupText = () => {
   const data = JSON.parse(JSON.stringify(db));
-  data.settings.apiKey = '';
-  data.settings.keyOk = false;
+  Object.assign(data.settings, { apiKey: '', keyOk: false, groqKey: '', groqKeyOk: false });
   data.exportedAt = new Date().toISOString();
   data.app = 'teo-diet';
   return JSON.stringify(data, null, 2);
@@ -365,7 +368,8 @@ function restore(text) {
   if (!confirm(`Replace ALL current data with this backup?\n\n${n} entries · ${w} weigh-ins\n\nThis cannot be undone.`)) return;
   delete data.exportedAt; delete data.app;
   data.settings = { ...(data.settings || {}) };
-  if (!data.settings.apiKey) Object.assign(data.settings, { apiKey: db.settings.apiKey, keyOk: db.settings.keyOk }); // keep this phone's key
+  if (!data.settings.apiKey) Object.assign(data.settings, { apiKey: db.settings.apiKey, keyOk: db.settings.keyOk }); // keep this phone's keys
+  if (!data.settings.groqKey) Object.assign(data.settings, { groqKey: db.settings.groqKey, groqKeyOk: db.settings.groqKeyOk });
   replaceAll(data);
   toast(`Restored ${n} entries`);
 }

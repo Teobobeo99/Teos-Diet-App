@@ -3,7 +3,7 @@
 // Rendering is idempotent: all in-progress UI state lives in module variables below.
 import { db, save, addEntries, deleteEntry, entriesFor, dayTotals, weekTargets, weekStart, dayIdx,
          targetFor, today, esc, uid, toast, r, DEFAULT_MODEL } from './store.js';
-import { parseLog } from './gemini.js';
+import { parseLog, provider, hasKey } from './ai.js';
 
 // ---------- Module state ----------
 let root = null;
@@ -46,29 +46,29 @@ export function render(el = root) {
 
 // ---------- Sections ----------
 function logBox() {
-  const hasKey = !!db.settings.apiKey;
+  const keyed = hasKey();
   return `
   <div class="t-log block">
     <label for="t-input">What did you eat or do?</label>
     <textarea id="t-input" data-fk="draft" rows="3" enterkeyhint="send" autocomplete="off"
       placeholder="${esc(placeholder())}" ${busy ? 'disabled' : ''}>${esc(draft)}</textarea>
     <div class="t-log-actions">
-      <button class="btn btn-primary t-go" data-act="log" ${busy || !hasKey ? 'disabled' : ''}>Log it</button>
+      <button class="btn btn-primary t-go" data-act="log" ${busy || !keyed ? 'disabled' : ''}>Log it</button>
       <button class="btn t-hand" data-act="hand" ${busy ? 'disabled' : ''}>+ By hand</button>
     </div>
     ${busy ? `<pre class="t-spin ascii" aria-live="polite">${spinText()}</pre>` : ''}
-    ${!hasKey ? `
+    ${!keyed ? `
       <div class="t-nokey">
         <pre class="ascii" aria-hidden="true"> o--,-,
   key?</pre>
-        <p>Gemini needs an API key before it can count calories for you. Favorites and "By hand" still work.</p>
+        <p>${provider().label} needs an API key before it can count calories for you. Favorites and "By hand" still work.</p>
         <button class="btn" data-act="settings">Go to Setup &gt;</button>
       </div>` : ''}
     ${error && !busy ? `
       <div class="t-error" role="alert">
         <span class="display">! </span>${esc(error)}
         <div class="row">
-          ${hasKey && draft.trim() ? '<button class="btn" data-act="log">Retry</button>' : ''}
+          ${keyed && draft.trim() ? '<button class="btn" data-act="log">Retry</button>' : ''}
           <button class="btn btn-ghost" data-act="dismiss">Dismiss</button>
         </div>
       </div>` : ''}
@@ -78,7 +78,7 @@ function logBox() {
 function confirmPanel() {
   if (!pending) return '';
   const { items, editId, source } = pending;
-  const canRetry = !editId && source && db.settings.apiKey;
+  const canRetry = !editId && source && hasKey();
   const rows = items.map((it, i) => {
     const burn = it.type === 'burn';
     return `
@@ -293,17 +293,17 @@ function scrollToConfirm() {
 async function submit(text = draft) {
   text = String(text || '').trim();
   if (busy || !text) return;
-  if (!db.settings.apiKey) { error = 'No Gemini API key yet. Add one in Setup.'; render(); return; }
+  if (!hasKey()) { error = `No ${provider().label} API key yet. Add one in Setup.`; render(); return; }
   error = '';
   setBusy(true);
   document.activeElement?.blur?.();   // drop the iOS keyboard so the result is visible
   render();
   try {
-    const items = await parseLog(text, { apiKey: db.settings.apiKey, model: db.settings.model || DEFAULT_MODEL, weightLbs: latestWeight() });
+    const items = await parseLog(text, { weightLbs: latestWeight() });
     if (!items.length) throw Object.assign(new Error('Didn\'t catch any food or exercise in that. Try being a bit more specific.'), { friendly: true });
     pending = { items, source: text, editId: null };
   } catch (e) {
-    error = e.friendly ? e.message : 'Something went wrong talking to Gemini. Try again.';
+    error = e.friendly ? e.message : `Something went wrong talking to ${provider().label}. Try again.`;
     if (!e.friendly) console.error(e);
   } finally {
     setBusy(false);

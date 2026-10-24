@@ -72,3 +72,9 @@
 #tab-settings .s-key-mask { font-size: 24px; overflow-wrap: anywhere; }
 #tab-settings .s-key-msg { margin: 8px 0 14px; overflow-wrap: anywhere; }
 #tab-settings select { margin-top: 0; }
+
+/* AI provider picker */
+#tab-settings .s-prov { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+#tab-settings .s-prov-btn { min-height: 44px; }
+#tab-settings .s-prov-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+#tab-settings .s-prov-btn[aria-pressed="true"]::before { content: "▶ "; }

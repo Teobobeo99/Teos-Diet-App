@@ -24,7 +24,8 @@ A calorie and macro tracker where you log food and exercise in plain language. Y
 ## Version 1 Features
 
 ### 1. Settings
-- **Gemini API key** with a **Test key** button. Testing lists the Gemini models the key can use, picks one (Gemini 3.8 Flash if available, else the newest Flash), and sends a tiny test request; failures show Google's exact error.
+- **AI provider switch** (Gemini / Groq). Each provider keeps its own key, test status and model, so switching back and forth doesn't lose anything.
+- **API key** (per provider) with a **Test key** button. Testing lists the Gemini models the key can use, picks one (Gemini 3.8 Flash if available, else the newest Flash), and sends a tiny test request; failures show Google's exact error.
 - Once a key passes the test it is **locked**: the input is replaced by a panel showing only the last 4 characters. It can never be revealed again, only replaced or removed.
 - **Model dropdown** listing the models the key can use.
 - Daily calorie target.
@@ -39,7 +40,7 @@ A calorie and macro tracker where you log food and exercise in plain language. Y
 
 ### 2. Quick Log (the main feature)
 - The app opens straight to the log box so logging takes seconds.
-- Defaults to **Gemini 3.8 Flash**; any Gemini text model the key can use can be picked in Settings.
+- AI provider is **Gemini** or **Groq**, picked in Settings. Gemini defaults to **Gemini 3.8 Flash**; Groq defaults to Llama 3.3 70B. Any text model the key can use can be picked.
 - One text box for logging, typed or dictated.
 - The entry is sent to Gemini, which returns structured items (name, calories, protein, carbs, fat) and whether each item is **food eaten** or **calories burned**.
 

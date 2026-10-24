@@ -13,7 +13,7 @@ const unionBy = (a = [], b = [], key) => [...new Map([...a, ...b].map(x => [x[ke
 //   in the cloud was deleted on another device, so it is dropped instead of resurrected.
 // - Meta (settings, weights, favorites, week overrides): on this device's first sync the lists
 //   are unioned and cloud settings win; after that, whichever side changed last wins.
-// - The Gemini key falls back to whichever side has one.
+// - AI keys fall back to whichever side has one.
 export function mergeOnSignIn(local, remote, { firstSync, knownIds = [], localMetaAt = 0 }) {
   const known = new Set(knownIds);
   const cloud = new Map(remote.entries.map(e => [e.id, e]));
@@ -35,6 +35,7 @@ export function mergeOnSignIn(local, remote, { firstSync, knownIds = [], localMe
   };
   else meta = (rm.updatedAt || 0) >= localMetaAt ? metaOf({ ...local, ...rm }) : metaOf(local);
 
-  meta.settings = { ...meta.settings, apiKey: meta.settings.apiKey || local.settings.apiKey || rm?.settings?.apiKey || '' };
+  const keep = k => meta.settings[k] || local.settings[k] || rm?.settings?.[k] || '';
+  meta.settings = { ...meta.settings, apiKey: keep('apiKey'), groqKey: keep('groqKey') };
   return { ...local, ...meta, entries };
 }

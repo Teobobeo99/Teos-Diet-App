@@ -25,7 +25,7 @@ const SCHEMA = {
   required: ['items'],
 };
 
-function systemPrompt(weightLbs) {
+export function systemPrompt(weightLbs) {
   const who = weightLbs
     ? `The user is an adult who weighs about ${weightLbs} lbs; base exercise burn on that weight.`
     : 'Assume a typical adult (about 170 lbs) for exercise burn.';
@@ -146,10 +146,10 @@ export function normalize(raw) {
   try {
     obj = JSON.parse(String(raw).replace(/^```(?:json)?\s*|\s*```$/g, ''));
   } catch {
-    fail('Couldn\'t understand Gemini\'s answer. Try again.');
+    fail('Couldn\'t understand the AI\'s answer. Try again.');
   }
   const list = Array.isArray(obj) ? obj : obj?.items;
-  if (!Array.isArray(list)) fail('Couldn\'t understand Gemini\'s answer. Try again.');
+  if (!Array.isArray(list)) fail('Couldn\'t understand the AI\'s answer. Try again.');
   const n = v => Math.max(0, Math.round(+v || 0));
   return list
     .filter(it => it && (it.name || it.calories))

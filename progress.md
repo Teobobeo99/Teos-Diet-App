@@ -85,3 +85,11 @@
 - Cause: Teo's saved key contained characters Safari won't put in a request header (invisible/zero-width chars, curly quotes, or "…" from the shortened key in AI Studio's list), so fetch threw before reaching Google. Verified in WebKit against the real API.
 - Fix: `gemini.js` `cleanKey` strips whitespace/invisible chars/quotes; `keyProblem` explains shortened, too-short or malformed keys. `sw.js` CACHE v7.
 - Not pushed yet.
+
+## 2026-10-24 (Groq support)
+- Teo asked for Groq. Spec said Gemini only; Teo chose "both, pick in Setup".
+- New `js/groq.js` (OpenAI-compatible API, JSON mode, key checks for `gsk_` keys) and `js/ai.js` (routes logging to the chosen provider). Gemini's prompt and answer parsing are shared.
+- Setup: Gemini / Groq toggle; each provider has its own locked key, test and model list. Backups strip both keys; sync keeps both keys.
+- Verified Groq accepts browser requests (CORS) against the real API; full flow tested in WebKit with mocked responses (key test, lock, model list, logging a meal, switching back to Gemini).
+- Note for tests: Playwright can't intercept requests while the service worker is active; use `service_workers='block'`.
+- `sw.js` CACHE v8. Committed locally, not pushed.
