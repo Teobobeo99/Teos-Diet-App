@@ -24,7 +24,9 @@ A calorie and macro tracker where you log food and exercise in plain language. Y
 ## Version 1 Features
 
 ### 1. Settings
-- Field for the user's **Gemini API key**, stored only on the device.
+- **Gemini API key** with a **Test key** button. Testing lists the Gemini models the key can use, picks one (Gemini 3.8 Flash if available, else the newest Flash), and sends a tiny test request; failures show Google's exact error.
+- Once a key passes the test it is **locked**: the input is replaced by a panel showing only the last 4 characters. It can never be revealed again, only replaced or removed.
+- **Model dropdown** listing the models the key can use.
 - Daily calorie target.
 - Macro targets (protein at minimum; carbs and fat optional).
 - Goal weight (in lbs).
@@ -37,7 +39,7 @@ A calorie and macro tracker where you log food and exercise in plain language. Y
 
 ### 2. Quick Log (the main feature)
 - The app opens straight to the log box so logging takes seconds.
-- Uses the **Gemini 3.8 Flash** model.
+- Defaults to **Gemini 3.8 Flash**; any Gemini text model the key can use can be picked in Settings.
 - One text box for logging, typed or dictated.
 - The entry is sent to Gemini, which returns structured items (name, calories, protein, carbs, fat) and whether each item is **food eaten** or **calories burned**.
 

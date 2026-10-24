@@ -2,8 +2,6 @@
 // parseLog(text, { apiKey, model, weightLbs }) -> [{ name, cal, p, c, f, type: 'food' | 'burn' }]
 import { DEFAULT_MODEL } from './store.js';
 
-const ENDPOINT = m => `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`;
-
 const SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -44,6 +42,61 @@ function systemPrompt(weightLbs) {
 }
 
 const fail = msg => { const e = new Error(msg); e.friendly = true; throw e; };
+const BASE = 'https://generativelanguage.googleapis.com/v1beta';
+
+// Turn a failed Gemini response into a friendly error. Google's own message is kept so problems are diagnosable.
+function apiError(res, data, model) {
+  const apiMsg = data?.error?.message || '';
+  const status = data?.error?.status || '';
+  if (res.status === 429) fail('Gemini rate limit hit. Wait a minute and try again.' + (apiMsg ? ` (${apiMsg})` : ''));
+  if (/API key not valid|API_KEY_INVALID/i.test(apiMsg)) fail('Google says this API key isn\'t valid. Copy it again from aistudio.google.com/apikey.');
+  if (res.status === 403 || status === 'PERMISSION_DENIED') fail(`Google refused the key${apiMsg ? ': ' + apiMsg : '.'}`);
+  if (res.status === 404) fail(`Model "${model || DEFAULT_MODEL}" isn't available for this key. Pick another model in Setup.`);
+  if (res.status === 400) fail(`Gemini didn't accept the request${apiMsg ? ': ' + apiMsg : '.'}`);
+  if (res.status >= 500) fail('Gemini is having trouble right now. Try again in a moment.');
+  fail(`Gemini error ${res.status}${apiMsg ? ': ' + apiMsg : ''}`);
+}
+
+async function call(url, apiKey, init = {}) {
+  try {
+    return await fetch(url, { ...init, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }, signal: AbortSignal.timeout?.(30000) });
+  } catch (e) {
+    if (e?.name === 'TimeoutError') fail('Gemini took too long to answer. Try again.');
+    fail('Can\'t reach Gemini. Check your connection and try again.');
+  }
+}
+
+// Gemini text models this key can use, newest first: [{ id, label }].
+export async function listModels(apiKey) {
+  if (!apiKey) fail('Paste a key first.');
+  const res = await call(`${BASE}/models?pageSize=1000`, apiKey);
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (!res.ok) apiError(res, data);
+  return (data?.models || [])
+    .filter(m => /^models\/gemini-/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent')
+      && !/embedding|image|tts|audio|live|vision/i.test(m.name))
+    .map(m => ({ id: m.name.replace('models/', ''), label: m.displayName || m.name.replace('models/', '') }))
+    .sort((a, b) => b.id.localeCompare(a.id, undefined, { numeric: true }));
+}
+
+// Preferred model from a list: Gemini 3.8 Flash if offered, else the newest stable Flash, else the first one.
+export function pickModel(models, current) {
+  const ids = models.map(m => m.id);
+  if (current && ids.includes(current)) return current;
+  if (ids.includes(DEFAULT_MODEL)) return DEFAULT_MODEL;
+  return ids.find(id => /flash/.test(id) && !/lite|preview|exp/.test(id)) || ids.find(id => /flash/.test(id)) || ids[0];
+}
+
+// Tiny real request to prove the key + model actually answer.
+export async function testModel(apiKey, model) {
+  const res = await call(`${BASE}/models/${encodeURIComponent(model)}:generateContent`, apiKey, {
+    method: 'POST', body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'Reply with OK.' }] }] }),
+  });
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (!res.ok) apiError(res, data, model);
+}
 
 export async function parseLog(text, { apiKey, model, weightLbs } = {}) {
   text = String(text || '').trim();
@@ -56,33 +109,14 @@ export async function parseLog(text, { apiKey, model, weightLbs } = {}) {
     generationConfig: { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: 0.2 },
   };
 
-  let res;
-  try {
-    res = await fetch(ENDPOINT(model || DEFAULT_MODEL), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout?.(30000),
-    });
-  } catch (e) {
-    if (e?.name === 'TimeoutError') fail('Gemini took too long to answer. Try again.');
-    fail('Can\'t reach Gemini. Check your connection and try again.');
-  }
+  const res = await call(`${BASE}/models/${encodeURIComponent(model || DEFAULT_MODEL)}:generateContent`, apiKey, {
+    method: 'POST', body: JSON.stringify(body),
+  });
 
   let data = null;
   try { data = await res.json(); } catch {}
 
-  if (!res.ok) {
-    const apiMsg = data?.error?.message || '';
-    const status = data?.error?.status || '';
-    if (res.status === 429) fail('Gemini rate limit hit. Wait a minute and try again.');
-    if (res.status === 403 || /API.?key/i.test(apiMsg) || status === 'PERMISSION_DENIED')
-      fail('Gemini rejected the API key. Double-check it in Setup.');
-    if (res.status === 404) fail(`Model "${model || DEFAULT_MODEL}" not found. Check the model name in Setup.`);
-    if (res.status === 400) fail(`Gemini didn't accept the request${apiMsg ? ': ' + apiMsg : '.'}`);
-    if (res.status >= 500) fail('Gemini is having trouble right now. Try again in a moment.');
-    fail(`Gemini error ${res.status}${apiMsg ? ': ' + apiMsg : ''}`);
-  }
+  if (!res.ok) apiError(res, data, model);
 
   if (data?.promptFeedback?.blockReason) fail('Gemini blocked that message. Try rewording it.');
   const parts = data?.candidates?.[0]?.content?.parts || [];

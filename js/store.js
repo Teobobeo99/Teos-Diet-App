@@ -5,7 +5,7 @@ export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const DEFAULT_MODEL = 'gemini-3.8-flash';
 
 export const defaults = () => ({
-  settings: { apiKey: '', model: DEFAULT_MODEL, target: 2200, protein: 160, carbs: '', fat: '', goal: 175,
+  settings: { apiKey: '', keyOk: false, models: [], model: DEFAULT_MODEL, target: 2200, protein: 160, carbs: '', fat: '', goal: 175,
               pct: 50, floor: 1500, bigExtra: 400, bigDays: [5, 6] },
   entries: [],      // { id, date, time, name, cal, p, c, f, type: 'food' | 'burn' }
   weights: [],      // { date, lbs }

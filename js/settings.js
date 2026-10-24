@@ -3,6 +3,7 @@ import {
   db, save, replaceAll, defaults, weekStart, today, DAYS, DEFAULT_MODEL, esc, r, toast,
 } from './store.js';
 import { getUser, getStatus, onStatus, signIn, signOut } from './sync.js';
+import { listModels, pickModel, testModel } from './gemini.js';
 
 let root = null;
 let weekDraft = null; // null = this week follows defaults; else [dayIdx...]
@@ -17,8 +18,95 @@ export function init(el) {
     if (act === 'in') signIn();
     if (act === 'out' && confirm('Sign out? Your data stays on this device but stops syncing.')) signOut();
   });
+  el.addEventListener('click', e => {
+    const act = e.target.closest('[data-key]')?.dataset.key;
+    if (act) keyAction(act);
+  });
+  el.addEventListener('change', e => {
+    if (e.target.id !== 's-model-pick') return;
+    db.settings.model = e.target.value; keyMsg = ''; save(); toast('Model switched');
+  });
+  el.addEventListener('keydown', e => { if (e.target.id === 's-key-new' && e.key === 'Enter') { e.preventDefault(); keyAction('test'); } });
   onStatus(() => { const box = root?.querySelector('#s-account'); if (box) box.innerHTML = accountHTML(); });
   el.addEventListener('submit', e => { e.preventDefault(); doSave(); });
+}
+
+// ---------- Gemini key ----------
+// A key that passed the test is locked: only its last 4 characters are ever shown again.
+let keyBusy = false, keyMsg = '', replacing = false;
+const masked = k => '••••••••' + esc(k.slice(-4));
+
+function geminiHTML() {
+  const s = db.settings;
+  const locked = s.apiKey && s.keyOk && !replacing;
+  const msg = keyMsg ? `<p class="s-note s-key-msg ${keyMsg.startsWith('✓') ? 'good-text' : 'over-text'}" role="status">${esc(keyMsg)}</p>` : '';
+  if (locked) {
+    const models = s.models?.length ? s.models : [{ id: s.model, label: s.model }];
+    return `
+    <div class="s-key-locked px-box">
+      <pre class="s-lock" aria-hidden="true"> .-.
+ |=|
+[###]</pre>
+      <div>
+        <p class="s-key-line display">Key locked</p>
+        <p class="num s-key-mask">${masked(s.apiKey)} <span class="good-text">✓ tested</span></p>
+        <p class="s-note muted">${getUser() ? 'Synced to your account.' : 'Saved on this device.'} It can't be shown again, only replaced.</p>
+      </div>
+    </div>
+    <div class="s-field">
+      <label for="s-model-pick">Model <span class="muted">▾ tap to change</span></label>
+      <select id="s-model-pick">${models.map(m => `<option value="${esc(m.id)}" ${m.id === s.model ? 'selected' : ''}>${esc(m.label)}${m.id === DEFAULT_MODEL ? ' ★' : ''}</option>`).join('')}</select>
+    </div>
+    <div class="s-btns">
+      <button type="button" data-key="retest" ${keyBusy ? 'disabled' : ''}>${keyBusy ? 'Testing…' : 'Test again'}</button>
+      <button type="button" data-key="replace">Replace key</button>
+      <button type="button" class="btn-danger" data-key="remove">Remove</button>
+    </div>${msg}`;
+  }
+  const old = s.apiKey && !replacing;
+  return `
+    <div class="s-field">
+      <label for="s-key-new">API key</label>
+      <input id="s-key-new" type="password" autocomplete="off" spellcheck="false" autocapitalize="off"
+        placeholder="${old ? 'saved key · tap Test' : 'paste key'}" ${keyBusy ? 'disabled' : ''}>
+      <p class="s-note muted">Get one free at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+        Testing finds which Gemini models it can use.</p>
+    </div>
+    <div class="s-btns">
+      <button type="button" class="btn-primary" data-key="test" ${keyBusy ? 'disabled' : ''}>${keyBusy ? 'Testing…' : 'Test key'}</button>
+      ${replacing ? '<button type="button" data-key="cancel">Cancel</button>' : ''}
+    </div>${msg}`;
+}
+
+function paintGemini() { const box = root?.querySelector('#s-gemini'); if (box) box.innerHTML = geminiHTML(); }
+
+async function keyAction(act) {
+  const s = db.settings;
+  if (act === 'replace') { replacing = true; keyMsg = ''; paintGemini(); root.querySelector('#s-key-new')?.focus(); return; }
+  if (act === 'cancel') { replacing = false; keyMsg = ''; return paintGemini(); }
+  if (act === 'remove') {
+    if (!confirm('Remove the Gemini key? Logging with Gemini stops until you add one again.')) return;
+    Object.assign(s, { apiKey: '', keyOk: false, models: [] }); keyMsg = ''; replacing = false; save(); return;
+  }
+  // test / retest
+  const typed = root.querySelector('#s-key-new')?.value.trim() || '';
+  const key = act === 'retest' ? s.apiKey : typed || (!replacing && s.apiKey);
+  if (!key) { keyMsg = 'Paste a key first.'; return paintGemini(); }
+  keyBusy = true; keyMsg = ''; paintGemini();
+  try {
+    const models = await listModels(key);
+    if (!models.length) throw Object.assign(new Error('This key works, but no Gemini text models are available to it.'), { friendly: true });
+    const model = pickModel(models, s.model);
+    await testModel(key, model);
+    Object.assign(s, { apiKey: key, keyOk: true, model, models });
+    replacing = false;
+    keyMsg = `✓ Works. Using ${models.find(m => m.id === model)?.label || model}. ${models.length} models available.`;
+    keyBusy = false; save();
+  } catch (e) {
+    keyBusy = false;
+    keyMsg = e.friendly ? e.message : 'Test failed: ' + (e.message || 'unknown error');
+    paintGemini();
+  }
 }
 
 function accountHTML() {
@@ -49,25 +137,9 @@ export function render(el = root) {
 
   el.innerHTML = `<div class="rule" data-label="ACCOUNT"></div>
   <div id="s-account">${accountHTML()}</div>
+  <div class="rule" data-label="GEMINI"></div>
+  <div id="s-gemini">${geminiHTML()}</div>
   <form class="s-form" novalidate autocomplete="off">
-    <div class="rule" data-label="GEMINI"></div>
-    <div class="s-field">
-      <label for="s-apiKey">API key</label>
-      <div class="s-inline">
-        <input id="s-apiKey" name="apiKey" type="password" value="${esc(s.apiKey)}" spellcheck="false" autocapitalize="off" placeholder="paste key">
-        <button type="button" data-act="peek" aria-label="Show key">Show</button>
-      </div>
-      <p class="s-note muted">Stored on this device (and in your account if signed in). Get one free at
-        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></p>
-    </div>
-    <div class="s-field">
-      <label for="s-model">Model · Gemini 3.8 Flash</label>
-      <div class="s-inline">
-        <input id="s-model" name="model" type="text" value="${esc(s.model)}" spellcheck="false" autocapitalize="off">
-        <button type="button" data-act="reset-model">Reset</button>
-      </div>
-    </div>
-
     <div class="rule" data-label="DAILY TARGETS"></div>
     ${field('target', 'Calories / day', s.target, 'min="800" max="10000" required')}
     <div class="s-trio">
@@ -197,14 +269,6 @@ function onClick(e) {
     return syncWeek();
   }
   switch (b.dataset.act) {
-    case 'peek': {
-      const k = root.querySelector('#s-apiKey'), show = k.type === 'password';
-      k.type = show ? 'text' : 'password';
-      b.textContent = show ? 'Hide' : 'Show';
-      b.setAttribute('aria-label', show ? 'Hide key' : 'Show key');
-      return;
-    }
-    case 'reset-model': root.querySelector('#s-model').value = DEFAULT_MODEL; return toast('Model reset · save to keep');
     case 'week-reset': weekDraft = null; return syncWeek();
     case 'export': return exportFile();
     case 'copy': return copyBackup();
@@ -253,8 +317,6 @@ function doSave() {
   next.goal = Math.round(next.goal * 10) / 10;
 
   Object.assign(db.settings, next, {
-    apiKey: val('apiKey'),
-    model: val('model') || DEFAULT_MODEL,
     bigDays: picked('def'),
   });
   const ws = weekStart(today());
@@ -268,6 +330,7 @@ function doSave() {
 const backupText = () => {
   const data = JSON.parse(JSON.stringify(db));
   data.settings.apiKey = '';
+  data.settings.keyOk = false;
   data.exportedAt = new Date().toISOString();
   data.app = 'teo-diet';
   return JSON.stringify(data, null, 2);
@@ -302,7 +365,7 @@ function restore(text) {
   if (!confirm(`Replace ALL current data with this backup?\n\n${n} entries · ${w} weigh-ins\n\nThis cannot be undone.`)) return;
   delete data.exportedAt; delete data.app;
   data.settings = { ...(data.settings || {}) };
-  if (!data.settings.apiKey) data.settings.apiKey = db.settings.apiKey; // keep this phone's key
+  if (!data.settings.apiKey) Object.assign(data.settings, { apiKey: db.settings.apiKey, keyOk: db.settings.keyOk }); // keep this phone's key
   replaceAll(data);
   toast(`Restored ${n} entries`);
 }

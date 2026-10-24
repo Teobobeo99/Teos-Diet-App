@@ -72,3 +72,11 @@
 - `store.js`: `setSyncHook` + `applyRemote`. Setup tab: Account section; wipe warns it affects all synced devices. `sw.js` CACHE v5, caches Firebase SDK files.
 - Tested: app loads with no errors in WebKit + Chromium; Google popup reaches account picker. Real sign-in + two-device sync not yet tested (needs Teo's Google account).
 - Risk: Google popups can be finicky inside an iPhone home-screen app. Fallback plan: add Email/Password sign-in.
+
+## 2026-10-24 (key test + lock, any Gemini model)
+- `gemini.js`: `listModels`, `pickModel`, `testModel`; shared error handling that keeps Google's message (helps diagnose a key that "doesn't work").
+- Setup: Gemini section is now its own panel. "Test key" → on success the key locks (masked to last 4, no Show button; Replace / Remove / Test again) and a model dropdown lists the key's models. Removed the Show button and free-text model field.
+- Spec updated: model is selectable (Gemini 3.8 Flash stays the default when available).
+- Tested in WebKit with mocked Google responses (bad key, good key, model switch, replace/cancel). Real key not yet tried.
+- Also saved memory rules: never push without Teo asking; scan for secrets before any push.
+- Not pushed (waiting for Teo).
