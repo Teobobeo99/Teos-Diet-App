@@ -3,7 +3,7 @@ import {
   db, save, replaceAll, defaults, weekStart, today, DAYS, DEFAULT_MODEL, esc, r, toast,
 } from './store.js';
 import { getUser, getStatus, onStatus, signIn, signOut } from './sync.js';
-import { listModels, pickModel, testModel } from './gemini.js';
+import { listModels, pickModel, testModel, cleanKey } from './gemini.js';
 
 let root = null;
 let weekDraft = null; // null = this week follows defaults; else [dayIdx...]
@@ -89,8 +89,8 @@ async function keyAction(act) {
     Object.assign(s, { apiKey: '', keyOk: false, models: [] }); keyMsg = ''; replacing = false; save(); return;
   }
   // test / retest
-  const typed = root.querySelector('#s-key-new')?.value.trim() || '';
-  const key = act === 'retest' ? s.apiKey : typed || (!replacing && s.apiKey);
+  const typed = cleanKey(root.querySelector('#s-key-new')?.value);
+  const key = cleanKey(act === 'retest' ? s.apiKey : typed || (!replacing && s.apiKey));
   if (!key) { keyMsg = 'Paste a key first.'; return paintGemini(); }
   keyBusy = true; keyMsg = ''; paintGemini();
   try {

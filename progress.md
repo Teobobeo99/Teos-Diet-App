@@ -80,3 +80,8 @@
 - Tested in WebKit with mocked Google responses (bad key, good key, model switch, replace/cancel). Real key not yet tried.
 - Also saved memory rules: never push without Teo asking; scan for secrets before any push.
 - Not pushed (waiting for Teo).
+
+## 2026-10-24 (key "can't reach Gemini" fix)
+- Cause: Teo's saved key contained characters Safari won't put in a request header (invisible/zero-width chars, curly quotes, or "…" from the shortened key in AI Studio's list), so fetch threw before reaching Google. Verified in WebKit against the real API.
+- Fix: `gemini.js` `cleanKey` strips whitespace/invisible chars/quotes; `keyProblem` explains shortened, too-short or malformed keys. `sw.js` CACHE v7.
+- Not pushed yet.

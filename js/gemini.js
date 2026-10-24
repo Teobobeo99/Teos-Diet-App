@@ -57,7 +57,21 @@ function apiError(res, data, model) {
   fail(`Gemini error ${res.status}${apiMsg ? ': ' + apiMsg : ''}`);
 }
 
+// Pasted keys often carry invisible characters, quotes or a "…" that make the browser refuse to send them.
+export function cleanKey(raw) {
+  return String(raw || '').replace(/[\s\u200b-\u200d\u2060\ufeff"'“”‘’`]/g, '');
+}
+export function keyProblem(key) {
+  if (!key) return 'Paste a key first.';
+  if (/…|\.\.\./.test(key)) return 'That looks like the shortened key from the list. In AI Studio, click the copy icon next to the key to copy the whole thing.';
+  if (/[^A-Za-z0-9_-]/.test(key)) return 'The key has characters a Gemini key never has. Copy it again with the copy icon in AI Studio.';
+  if (key.length < 30) return `That key looks too short (${key.length} characters; Gemini keys are about 39). Copy it again with the copy icon.`;
+  return '';
+}
+
 async function call(url, apiKey, init = {}) {
+  const problem = keyProblem(apiKey);
+  if (problem) fail(problem);
   try {
     return await fetch(url, { ...init, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }, signal: AbortSignal.timeout?.(30000) });
   } catch (e) {
