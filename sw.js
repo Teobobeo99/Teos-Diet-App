@@ -1,6 +1,6 @@
 // Offline cache for the app shell.
 // Bump CACHE whenever any shell file changes so phones pick up the new version.
-const CACHE = 'teo-diet-v3';
+const CACHE = 'teo-diet-v4';
 const SHELL = [
   './', 'index.html', 'manifest.json',
   'css/base.css', 'css/today.css', 'css/dash.css', 'css/weight.css', 'css/history.css', 'css/settings.css',
