@@ -1,5 +1,5 @@
 // Shared data layer: state, persistence, dates and budget math.
-// Every tab module imports from here. Data lives only in localStorage.
+// Every tab module imports from here. Data lives in localStorage; js/sync.js mirrors it to the cloud when signed in.
 const KEY = 'teoDiet';
 export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const DEFAULT_MODEL = 'gemini-3.8-flash';
@@ -23,8 +23,20 @@ function load() {
   } catch { return base; }
 }
 
+let syncHook = null;
+export const setSyncHook = fn => { syncHook = fn; };
+
 // Persist and tell the app to re-render. Call after every change to db.
 export function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {}
+  syncHook?.();
+  window.dispatchEvent(new CustomEvent('db-change'));
+}
+
+// Data that arrived from the cloud: store it without pushing it straight back.
+export function applyRemote(data) {
+  const base = defaults();
+  db = { ...base, ...data, settings: { ...base.settings, ...(data.settings || {}) } };
   try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {}
   window.dispatchEvent(new CustomEvent('db-change'));
 }

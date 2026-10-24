@@ -58,3 +58,8 @@
 #tab-settings input[type="number"]::-webkit-inner-spin-button,
 #tab-settings input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 #tab-settings input[type="number"] { -moz-appearance: textfield; }
+
+/* Account / sync */
+#tab-settings .s-cloud { font-size: 18px; margin-bottom: 10px; }
+#tab-settings .s-signin { width: 100%; }
+#tab-settings .s-acct { margin: 0 0 10px; overflow-wrap: anywhere; }

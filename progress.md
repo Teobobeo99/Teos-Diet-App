@@ -59,3 +59,16 @@
 - Browser upload had flattened the `css/` and `js/` folders, so the live page loaded unstyled. Re-pushed with git (folders intact) and bumped `sw.js` CACHE to v4.
 - Live at https://teobobeo99.github.io/Teos-Diet-App/ (repo Teobobeo99/Teos-Diet-App, branch main).
 - Next: test on iPhone with a real Gemini key; answer pending decisions (big-day extra, past-week targets, all-7-big-days).
+
+## 2026-10-24 (login decision)
+- Teo chose cloud sync over phone-only storage (changes the earlier interview decision).
+- Decisions: Google sign-in via Firebase; Firestore sync; Gemini key syncs too; login is optional (app still works locally).
+- Next: Teo creates a Firebase project and shares the web config; then build auth + sync.
+
+## 2026-10-24 (cloud sync built)
+- Firebase project `teo-diet` set up by Teo (Google sign-in, Firestore in production mode, owner-only rules, authorized domain teobobeo99.github.io).
+- New `js/sync.js`: optional Google sign-in (popup), Firestore sync of entries (one doc each) + meta doc (settings incl. Gemini key, weights, favorites, week overrides). Offline cache on; Firebase SDK loads only when signed in. Sync status glyph in the top bar (☁✓ / ☁~ / ☁!).
+- New `js/merge.js`: sign-in merge rules (entry union, remote deletions respected, first-sync union of lists, newer-side-wins after). Unit-tested in Node.
+- `store.js`: `setSyncHook` + `applyRemote`. Setup tab: Account section; wipe warns it affects all synced devices. `sw.js` CACHE v5, caches Firebase SDK files.
+- Tested: app loads with no errors in WebKit + Chromium; Google popup reaches account picker. Real sign-in + two-device sync not yet tested (needs Teo's Google account).
+- Risk: Google popups can be finicky inside an iPhone home-screen app. Fallback plan: add Email/Password sign-in.

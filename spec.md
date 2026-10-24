@@ -14,8 +14,12 @@ A calorie and macro tracker where you log food and exercise in plain language. Y
 - Warm retro palette (cream paper, ink, leaf green, tomato red, mustard); amber-phosphor dark mode.
 
 ## Data Storage
-- All data is stored only on the phone (browser local storage).
-- Settings has **Export** (download a backup file) and **Import** (restore from that file) buttons so data can survive clearing Safari or moving devices.
+- Data is saved on the device (browser local storage) so the app works offline and without an account.
+- **Optional sign-in with Google** (Firebase Authentication). When signed in, all data syncs through Firebase Firestore so the phone and computer share the same log.
+  - Synced: entries, weights, favorites, week overrides, and settings **including the Gemini API key** (stored in the user's private account data; security rules allow only that user to read or write it).
+  - On first sign-in, data already on the device is uploaded and merged with any data already in the account.
+  - Works offline; changes sync when back online.
+- Settings keeps **Export** / **Import** (plus clipboard copy/restore) as a manual backup. Backups leave out the API key.
 
 ## Version 1 Features
 

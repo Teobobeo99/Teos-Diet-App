@@ -2,6 +2,7 @@
 import {
   db, save, replaceAll, defaults, weekStart, today, DAYS, DEFAULT_MODEL, esc, r, toast,
 } from './store.js';
+import { getUser, getStatus, onStatus, signIn, signOut } from './sync.js';
 
 let root = null;
 let weekDraft = null; // null = this week follows defaults; else [dayIdx...]
@@ -11,7 +12,28 @@ export function init(el) {
   el.addEventListener('click', onClick);
   el.addEventListener('input', onInput);
   el.addEventListener('change', onChange);
+  el.addEventListener('click', e => {
+    const act = e.target.closest('[data-acct]')?.dataset.acct;
+    if (act === 'in') signIn();
+    if (act === 'out' && confirm('Sign out? Your data stays on this device but stops syncing.')) signOut();
+  });
+  onStatus(() => { const box = root?.querySelector('#s-account'); if (box) box.innerHTML = accountHTML(); });
   el.addEventListener('submit', e => { e.preventDefault(); doSave(); });
+}
+
+function accountHTML() {
+  const u = getUser(), st = getStatus();
+  if (!u) return `
+    <pre class="s-cloud muted" aria-hidden="true">   .--.
+ .(    ).   sync your log between
+(___.__)__)  phone and computer</pre>
+    <button type="button" class="btn-primary s-signin" data-acct="in" ${st === 'loading' ? 'disabled' : ''}>
+      ${st === 'loading' ? 'Connecting…' : 'Sign in with Google'}</button>`;
+  const label = { synced: '<span class="good-text">☁✓ synced</span>', offline: '<span class="big-text">☁~ offline · will sync later</span>',
+    loading: '<span class="big-text">☁… syncing</span>', error: '<span class="over-text">☁! sync problem · try reloading</span>' }[st] || '';
+  return `
+    <p class="s-acct">Signed in as <b>${esc(u.email || u.displayName || 'you')}</b><br>${label}</p>
+    <button type="button" data-acct="out">Sign out</button>`;
 }
 
 export function render(el = root) {
@@ -25,7 +47,9 @@ export function render(el = root) {
       ${note ? `<p class="s-note muted">${note}</p>` : ''}
     </div>`;
 
-  el.innerHTML = `<form class="s-form" novalidate autocomplete="off">
+  el.innerHTML = `<div class="rule" data-label="ACCOUNT"></div>
+  <div id="s-account">${accountHTML()}</div>
+  <form class="s-form" novalidate autocomplete="off">
     <div class="rule" data-label="GEMINI"></div>
     <div class="s-field">
       <label for="s-apiKey">API key</label>
@@ -33,7 +57,7 @@ export function render(el = root) {
         <input id="s-apiKey" name="apiKey" type="password" value="${esc(s.apiKey)}" spellcheck="false" autocapitalize="off" placeholder="paste key">
         <button type="button" data-act="peek" aria-label="Show key">Show</button>
       </div>
-      <p class="s-note muted">Stored only on this device. Get one free at
+      <p class="s-note muted">Stored on this device (and in your account if signed in). Get one free at
         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></p>
     </div>
     <div class="s-field">
@@ -83,7 +107,7 @@ export function render(el = root) {
   </form>
 
   <div class="rule" data-label="BACKUP"></div>
-  <p class="s-note muted">Your data lives only on this phone. Back it up now and then.
+  <p class="s-note muted">${getUser() ? 'Your data syncs to your account. A backup file is still handy now and then.' : 'Your data lives only on this device. Sign in above to sync, or back it up now and then.'}
     The backup leaves out your API key.</p>
   <div class="s-btns">
     <button type="button" data-act="export">Export file</button>
@@ -107,7 +131,7 @@ export function render(el = root) {
   </div>
   <pre class="s-sig muted" aria-hidden="true">  +-----+
   | o o |   TEO DIET
-  |  -  |   data stays on this phone
+  |  -  |   your log, your rules
   +-----+</pre>`;
   syncWeek();
 }
@@ -285,7 +309,7 @@ function restore(text) {
 
 function wipe() {
   if (root.querySelector('#s-wipe').value.trim().toUpperCase() !== 'WIPE') return;
-  if (!confirm('Erase every entry, weigh-in, favorite and setting on this phone?')) return;
+  if (!confirm(`Erase every entry, weigh-in, favorite and setting ${getUser() ? 'on ALL your synced devices' : 'on this phone'}?`)) return;
   replaceAll(defaults());
   toast('Everything wiped');
 }

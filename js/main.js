@@ -4,6 +4,7 @@ import * as dashTab from './dash.js';
 import * as weightTab from './weight.js';
 import * as historyTab from './history.js';
 import * as settingsTab from './settings.js';
+import { initSync } from './sync.js';
 
 const TABS = {
   today: { mod: todayTab, title: 'Today' },
@@ -34,4 +35,6 @@ document.querySelector('.tabbar').addEventListener('click', e => {
 window.addEventListener('db-change', () => TABS[current].mod.render(rootOf(current)));
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+document.getElementById('sync-dot').addEventListener('click', () => go('settings'));
 go('today');
+initSync();

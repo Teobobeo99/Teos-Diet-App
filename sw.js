@@ -1,10 +1,10 @@
 // Offline cache for the app shell.
 // Bump CACHE whenever any shell file changes so phones pick up the new version.
-const CACHE = 'teo-diet-v4';
+const CACHE = 'teo-diet-v5';
 const SHELL = [
   './', 'index.html', 'manifest.json',
   'css/base.css', 'css/today.css', 'css/dash.css', 'css/weight.css', 'css/history.css', 'css/settings.css',
-  'js/main.js', 'js/store.js', 'js/today.js', 'js/gemini.js', 'js/dash.js', 'js/weight.js', 'js/history.js', 'js/settings.js',
+  'js/main.js', 'js/store.js', 'js/today.js', 'js/gemini.js', 'js/dash.js', 'js/weight.js', 'js/history.js', 'js/settings.js', 'js/sync.js', 'js/merge.js',
   'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png',
 ];
 
@@ -41,7 +41,9 @@ self.addEventListener('fetch', e => {
   // Same-origin shell files + Google Fonts: cache first, fill cache on miss.
   const sameOrigin = url.origin === self.location.origin;
   const fonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
-  if (!sameOrigin && !fonts) return;
+  // Firebase SDK files are versioned and never change, so they're safe to cache.
+  const firebaseSdk = url.hostname === 'www.gstatic.com' && url.pathname.startsWith('/firebasejs/');
+  if (!sameOrigin && !fonts && !firebaseSdk) return;
   e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
     if (res.ok || res.type === 'opaque') {
       const copy = res.clone();

@@ -52,6 +52,11 @@ pre, .ascii { font-family: var(--font-body); line-height: 1; margin: 0; white-sp
   border-bottom: var(--px) solid var(--ink);
 }
 .logo { font-size: 26px; line-height: 1; color: var(--leaf); }
+/* Sync status in the top bar: ☁✓ synced, ☁~ offline, ☁! problem */
+.sync-dot { margin-left: auto; box-shadow: none; border: none; background: none; min-height: 40px; padding: 0 4px; font: 22px/1 var(--font-body); color: var(--ink-soft); }
+.sync-dot.sync-synced { color: var(--leaf); }
+.sync-dot.sync-error { color: var(--tomato); }
+.sync-dot.sync-offline, .sync-dot.sync-loading { color: var(--mustard); }
 main { padding: 12px var(--gutter); max-width: 560px; margin: 0 auto; }
 .tab { display: none; } .tab.active { display: block; }
 .block { margin: 0 0 20px; }           /* a plain section, no box */
