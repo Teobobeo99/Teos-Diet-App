@@ -54,3 +54,8 @@
   - CSS: raised small tap targets to 40px or more (today Edit/Del, dashboard 14d/30d + "back to this week", Setup "Use defaults", paste-restore toggle, add-back slider, History date picker).
   - `sw.js`: CACHE bumped to `teo-diet-v3`.
 - Next: real-iPhone test with a live key (safe-area insets, dictation, home-screen install can't be fully emulated).
+
+## 2026-10-24 (deployed)
+- Browser upload had flattened the `css/` and `js/` folders, so the live page loaded unstyled. Re-pushed with git (folders intact) and bumped `sw.js` CACHE to v4.
+- Live at https://teobobeo99.github.io/Teos-Diet-App/ (repo Teobobeo99/Teos-Diet-App, branch main).
+- Next: test on iPhone with a real Gemini key; answer pending decisions (big-day extra, past-week targets, all-7-big-days).
