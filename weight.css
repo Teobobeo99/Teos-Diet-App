@@ -1,0 +1,44 @@
+/* ===== Weight tab ===== */
+#tab-weight .wt-form { margin-bottom: 4px; }
+#tab-weight .wt-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+#tab-weight .wt-fields > div { min-width: 0; }
+#tab-weight .wt-lbs input { font-size: 30px; padding: 4px 10px; height: 50px; }
+#tab-weight .wt-date input { height: 50px; font-size: 20px; min-width: 0; }
+#tab-weight .wt-save { width: 100%; }
+
+/* ---- Chart ---- */
+#tab-weight .wt-chart { display: block; width: 100%; height: auto; background: var(--paper-2); border: var(--px) solid var(--ink); image-rendering: pixelated; }
+#tab-weight .wt-ink { fill: var(--ink); }
+#tab-weight .wt-grid { fill: var(--ink-soft); opacity: .6; }
+#tab-weight .wt-goal { fill: var(--leaf); }
+#tab-weight .wt-avg { fill: var(--mustard); }
+#tab-weight .wt-pt { fill: var(--ink); }
+#tab-weight .wt-last { fill: var(--tomato); }
+#tab-weight .wt-axis { font: 6px var(--font-body); fill: var(--ink-soft); }
+
+#tab-weight .wt-legend { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 17px; color: var(--ink-soft); margin-top: 6px; }
+#tab-weight .wt-legend span { display: inline-flex; align-items: center; gap: 5px; }
+#tab-weight .wt-key { display: inline-block; width: 16px; height: 0; }
+#tab-weight .wt-key-line { border-top: var(--px) solid var(--ink); }
+#tab-weight .wt-key-avg { border-top: var(--px) dotted var(--mustard); }
+#tab-weight .wt-key-goal { border-top: var(--px) dashed var(--leaf); }
+
+/* ---- Stats ---- */
+#tab-weight .wt-stats { width: 100%; border-collapse: collapse; font-size: 20px; border-top: var(--px) double var(--ink); border-bottom: var(--px) double var(--ink); }
+#tab-weight .wt-stats th { text-align: left; font-size: 11px; text-transform: uppercase; white-space: nowrap; padding: 4px 0; }
+#tab-weight .wt-stats .wt-dots { width: 30%; min-width: 8px; padding: 0 4px; }
+#tab-weight .wt-stats .wt-dots::before { content: ""; display: block; border-bottom: 2px dotted var(--ink-soft); transform: translateY(4px); }
+#tab-weight .wt-stats td:last-child { text-align: right; }
+#tab-weight b { font-weight: 400; }
+#tab-weight .wt-stats b { font-size: 24px; }
+
+#tab-weight .wt-track { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 10px; font-size: 18px; }
+#tab-weight .wt-bar { flex: 1; text-align: center; letter-spacing: 0; color: var(--leaf); overflow: hidden; white-space: nowrap; font-size: 20px; }
+#tab-weight .wt-track-cap { text-align: center; font-size: 17px; }
+
+/* ---- Entry list ---- */
+#tab-weight .wt-list { list-style: none; margin: 0; padding: 0; border-top: var(--px) double var(--ink); }
+#tab-weight .wt-list li { display: grid; grid-template-columns: 1fr auto 60px 44px; align-items: center; gap: 8px; border-bottom: 2px dashed var(--ink-soft); min-height: 44px; }
+#tab-weight .wt-li-lbs b { font-size: 24px; }
+#tab-weight .wt-li-diff { text-align: right; font-size: 18px; }
+#tab-weight .wt-del { color: var(--tomato); font-size: 14px; padding: 0; min-width: 44px; }

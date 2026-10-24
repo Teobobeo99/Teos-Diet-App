@@ -1,0 +1,60 @@
+/* ===== Settings tab ===== */
+#tab-settings .rule:first-child { margin-top: 4px; }
+#tab-settings .s-field { margin-bottom: 14px; min-width: 0; }
+#tab-settings .s-note { margin: 4px 0 0; font-size: 18px; line-height: 1.1; }
+#tab-settings .s-note a { color: var(--leaf); text-decoration-thickness: 2px; overflow-wrap: anywhere; }
+#tab-settings .s-inline { display: flex; gap: 8px; align-items: stretch; }
+#tab-settings .s-inline input { flex: 1; min-width: 0; }
+#tab-settings .s-inline button { flex: none; padding: 0 12px; }
+#tab-settings .s-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+#tab-settings .s-trio .s-field { margin-bottom: 0; }
+#tab-settings .s-trio + .s-note { margin: 4px 0 14px; }
+#tab-settings .s-duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+#tab-settings .s-bad { border-color: var(--tomato); background: var(--paper); outline: var(--px) solid var(--tomato); outline-offset: 0; }
+#tab-settings .s-pct { float: right; font-size: 22px; line-height: 11px; color: var(--leaf); }
+
+/* range slider: chunky pixel track + square thumb */
+#tab-settings input[type="range"] { padding: 0; height: 40px; background: transparent; border: none; }
+#tab-settings input[type="range"]::-webkit-slider-runnable-track {
+  height: 14px; border: var(--px) solid var(--ink); border-radius: 0;
+  background: repeating-linear-gradient(to right, var(--ink-soft) 0 2px, var(--paper-2) 2px 10px);
+}
+#tab-settings input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 24px; height: 28px; margin-top: -10px;
+  background: var(--leaf); border: var(--px) solid var(--ink); border-radius: 0; box-shadow: 2px 2px 0 var(--ink);
+}
+#tab-settings input[type="range"]::-moz-range-track { height: 8px; border: var(--px) solid var(--ink); background: var(--paper-2); }
+#tab-settings input[type="range"]::-moz-range-thumb { width: 20px; height: 24px; background: var(--leaf); border: var(--px) solid var(--ink); border-radius: 0; }
+
+/* day chips */
+#tab-settings .s-chips { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 14px; }
+#tab-settings .s-chip { padding: 0; min-height: 44px; font-size: 10px; letter-spacing: 0; box-shadow: 2px 2px 0 var(--ink); }
+#tab-settings .s-chip[aria-pressed="true"] { background: var(--mustard); color: var(--ink); }
+#tab-settings .s-chip[aria-pressed="true"]::before { content: "*"; display: block; font: 16px/0.8 var(--font-body); }
+#tab-settings .s-week-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+#tab-settings .s-week-head label { margin: 0; }
+#tab-settings .s-small { min-height: 40px; padding: 6px 4px; font-size: 10px; text-decoration: underline; }
+
+/* planned week preview */
+#tab-settings .s-preview { margin-bottom: 18px; }
+#tab-settings .s-plan { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin: 4px 0; border-top: 2px dashed var(--ink-soft); border-bottom: 2px dashed var(--ink-soft); padding: 4px 0; }
+#tab-settings .s-plan span { text-align: center; font-size: 19px; min-width: 0; }
+#tab-settings .s-plan b { display: block; font-size: 9px; font-weight: 400; color: var(--ink-soft); }
+#tab-settings .s-plan .big-text b { color: var(--mustard); }
+#tab-settings .s-save { width: 100%; font-size: 13px; min-height: 52px; }
+
+/* backup + danger */
+#tab-settings .s-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+#tab-settings .s-btns button:last-child { grid-column: 1 / -1; }
+#tab-settings .s-paste summary { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 0; cursor: pointer; }
+#tab-settings .s-paste textarea { font-size: 16px; margin-bottom: 8px; }
+#tab-settings .s-sig { margin-top: 24px; font-size: 18px; }
+
+@media (max-width: 350px) {
+  #tab-settings .s-chip { font-size: 9px; }
+  #tab-settings .s-plan span { font-size: 17px; }
+  #tab-settings .s-btns { grid-template-columns: 1fr; }
+}
+#tab-settings input[type="number"]::-webkit-inner-spin-button,
+#tab-settings input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+#tab-settings input[type="number"] { -moz-appearance: textfield; }

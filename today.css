@@ -1,0 +1,108 @@
+/* ===== Today tab: quick log, confirm panel, summary, favorites, log list ===== */
+
+/* ---- Log box ---- */
+#tab-today .t-log textarea { min-height: 104px; font-size: 24px; line-height: 1.1; }
+#tab-today .t-log textarea::placeholder { color: var(--ink-soft); opacity: 1; }
+#tab-today .t-log-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 10px; }
+#tab-today .t-go { font-size: 16px; min-height: 52px; }
+#tab-today .t-hand { font-size: 10px; padding: 10px; }
+#tab-today .t-spin { margin-top: 10px; font-size: 22px; color: var(--leaf); white-space: pre; overflow: hidden; }
+
+#tab-today .t-nokey { margin-top: 12px; padding: 10px 0; border-top: var(--px) dashed var(--ink-soft); border-bottom: var(--px) dashed var(--ink-soft); }
+#tab-today .t-nokey pre { color: var(--mustard); font-size: 22px; }
+#tab-today .t-nokey p { margin: 6px 0 10px; }
+
+#tab-today .t-error { margin-top: 12px; padding: 8px 0 8px 10px; border-left: calc(var(--px) * 2) solid var(--tomato); color: var(--tomato); }
+#tab-today .t-error .row { margin-top: 8px; }
+#tab-today .t-error .btn-ghost { color: var(--ink-soft); }
+
+/* ---- Confirm / edit panel (the one boxed element) ---- */
+#tab-today .t-confirm { padding: 12px 10px; scroll-margin-top: 12px; }
+#tab-today .t-source { margin: -2px 0 8px; font-size: 20px; overflow-wrap: anywhere; }
+#tab-today .t-items { list-style: none; margin: 0; padding: 0; }
+#tab-today .t-item { padding: 10px 0; border-bottom: var(--px) dashed var(--ink-soft); }
+#tab-today .t-item:first-child { padding-top: 2px; }
+#tab-today .t-item-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; align-items: stretch; }
+#tab-today .t-item-top input { min-width: 0; padding: 6px 8px; }
+#tab-today .t-type, #tab-today .t-x { min-height: 40px; padding: 0 8px; font-size: 10px; box-shadow: none; }
+#tab-today .t-type { width: 54px; background: var(--paper-2); }
+#tab-today .is-burn .t-type { background: var(--leaf); color: var(--on-accent); }
+#tab-today .t-x { width: 40px; color: var(--tomato); border-color: var(--tomato); }
+
+#tab-today .t-item-nums { display: grid; grid-template-columns: 1.35fr 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
+#tab-today .t-item-nums.one { grid-template-columns: minmax(0, 1fr); max-width: 160px; margin-left: 60px; }
+#tab-today .t-num { margin: 0; min-width: 0; font-size: 9px; letter-spacing: 0; }
+#tab-today .t-num span { display: block; margin-bottom: 2px; color: var(--ink-soft); white-space: nowrap; }
+#tab-today .t-num input { min-width: 0; padding: 5px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+#tab-today .is-burn .t-num input { color: var(--leaf); }
+
+#tab-today .t-total { margin: 10px 0 12px; font-size: 20px; }
+#tab-today .t-confirm-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+#tab-today .t-confirm-actions > .btn { flex: 1 1 120px; }
+#tab-today .t-confirm-actions.minor { margin-top: 8px; gap: 0; justify-content: space-between; }
+#tab-today .t-confirm-actions.minor > .btn { flex: 0 1 auto; padding: 10px 6px; font-size: 11px; }
+#tab-today .t-confirm .empty pre { font-size: 18px; }
+
+/* ---- Summary ---- */
+#tab-today .t-sum-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; }
+#tab-today .t-big { font-size: 84px; line-height: .8; letter-spacing: -1px; }
+#tab-today .t-big-label { font-size: 12px; margin-top: 6px; text-transform: uppercase; }
+#tab-today .t-critter { text-align: center; flex: none; color: var(--ink); }
+#tab-today .t-critter.good-text { color: var(--leaf); }
+#tab-today .t-critter.big-text { color: var(--mustard); }
+#tab-today .t-critter.over-text { color: var(--tomato); }
+#tab-today .t-critter pre { font-size: 20px; text-align: left; display: inline-block; }
+#tab-today .t-say { font-size: 18px; margin-top: 2px; }
+
+#tab-today .t-gauge { margin: 12px 0 6px; font-size: 20px; white-space: nowrap; overflow: hidden; letter-spacing: 0; }
+#tab-today .t-cells { color: var(--leaf); }
+#tab-today .t-gauge.over-text .t-cells { color: var(--tomato); }
+
+#tab-today .t-stats { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 20px; color: var(--ink-soft); }
+#tab-today .t-stats b { font-weight: 400; color: var(--ink); }
+#tab-today .t-stats b.good-text { color: var(--leaf); }
+#tab-today .t-macros { margin-top: 12px; display: grid; gap: 8px; }
+#tab-today .t-macro-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+#tab-today .t-macro-head .display { font-size: 11px; text-transform: uppercase; }
+#tab-today .t-macro-head .num { font-size: 20px; }
+#tab-today .t-note { margin: 10px 0 0; font-size: 18px; }
+
+/* ---- Favorites ---- */
+#tab-today .t-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+#tab-today .t-chip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  font: 20px/1 var(--font-body); text-transform: none; letter-spacing: 0;
+  padding: 8px 10px; min-height: 44px; background: var(--paper-2);
+}
+#tab-today .t-star { color: var(--mustard); font-size: 18px; }
+#tab-today .t-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+#tab-today .t-chip-cal { color: var(--ink-soft); }
+#tab-today .t-chip.editing { border-style: dashed; box-shadow: none; }
+#tab-today .t-chip-x { font: 10px/1 var(--font-display); color: var(--tomato); text-transform: uppercase; }
+#tab-today .t-chip.armed { background: var(--tomato); border-color: var(--tomato); color: var(--on-accent); }
+#tab-today .t-chip.armed .t-chip-x, #tab-today .t-chip.armed .t-chip-cal { color: var(--on-accent); }
+#tab-today .t-fav-tools { margin-top: 8px; text-align: right; }
+#tab-today .t-fav-tools .btn { font-size: 10px; padding: 8px 4px; color: var(--ink-soft); }
+
+/* ---- Log list ---- */
+#tab-today .t-entries { list-style: none; margin: 0; padding: 0; }
+#tab-today .t-entry {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 8px; row-gap: 2px; align-items: baseline;
+  padding: 8px 0; border-bottom: var(--px) dashed var(--paper-2);
+}
+#tab-today .t-time { font-size: 18px; }
+#tab-today .t-ename { overflow-wrap: anywhere; }
+#tab-today .t-kcal { font-size: 24px; text-align: right; }
+#tab-today .t-macs { grid-column: 2; font-size: 17px; align-self: center; }
+#tab-today .t-eacts { grid-column: 3; display: flex; gap: 6px; justify-content: flex-end; }
+#tab-today .t-mini { min-height: 40px; min-width: 44px; padding: 4px 6px; font-size: 9px; box-shadow: none; border-width: 2px; }
+#tab-today .t-mini.danger { color: var(--tomato); border-color: var(--tomato); }
+#tab-today .t-mini.armed { background: var(--tomato); color: var(--on-accent); }
+
+@media (max-width: 340px) {
+  #tab-today .t-big { font-size: 68px; }
+  #tab-today .t-critter pre { font-size: 17px; }
+  #tab-today .t-gauge { font-size: 17px; }
+  #tab-today .t-item-nums { gap: 4px; }
+  #tab-today .t-num input { padding: 5px 4px; font-size: 20px; }
+}

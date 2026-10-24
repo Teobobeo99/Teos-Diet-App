@@ -1,0 +1,79 @@
+/* ===== Dashboard tab (This Week) ===== */
+#tab-dash .dash-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+#tab-dash .dash-nav { font-size: 16px; min-width: 44px; padding: 8px; }
+#tab-dash .dash-range { text-align: center; }
+#tab-dash .dash-range-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+#tab-dash .dash-now { text-align: center; margin: -4px 0 6px; }
+#tab-dash .dash-now button { font-size: 10px; min-height: 40px; padding: 4px 8px; color: var(--ink-soft); }
+#tab-dash .dash-link { cursor: pointer; text-decoration: underline; font-weight: 400; font-size: .7em; }
+
+/* ---- Pixel blocks shared by chart, history, legend ---- */
+#tab-dash .px { display: block; background: transparent; }
+#tab-dash .px-fill { background: var(--leaf); }
+#tab-dash .px-over { background: var(--tomato); }
+#tab-dash .px-ghost { outline: 2px dotted var(--ink-soft); outline-offset: -2px; }
+#tab-dash .px-target { box-shadow: 0 calc(-1 * var(--px)) 0 0 var(--ink); }
+
+/* ---- Bar chart: 7 columns, each a stack of square-ish blocks ---- */
+#tab-dash .dash-chart {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  border-bottom: var(--px) solid var(--ink); padding-bottom: 0;
+}
+#tab-dash .dash-col {
+  all: unset; display: flex; flex-direction: column; align-items: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; padding: 2px 0 0; min-width: 0;
+}
+#tab-dash .dash-col:focus-visible { outline: var(--px) dashed var(--mustard); outline-offset: 1px; }
+#tab-dash .dash-mark { font: 18px/1 var(--font-body); height: 18px; }
+#tab-dash .dash-bar { display: grid; grid-template-rows: repeat(18, 7px); row-gap: 2px; width: 70%; max-width: 36px; padding: 2px 0; }
+#tab-dash .dash-col.is-sel .dash-bar { outline: 2px dashed var(--ink); outline-offset: 2px; }
+
+/* Day labels hang below the baseline (the chart's bottom border) */
+#tab-dash .dash-chart { position: relative; margin-bottom: 28px; }
+#tab-dash .dash-col { position: relative; }
+#tab-dash .dash-day { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%); font-size: 11px; padding: 2px 3px; }
+#tab-dash .dash-col.is-today .dash-day { background: var(--ink); color: var(--paper); }
+#tab-dash .dash-col.is-today .dash-bar { background: var(--paper-2); }
+#tab-dash .dash-col.is-big .dash-day { color: var(--mustard); }
+#tab-dash .dash-col.is-future .dash-day { color: var(--ink-soft); }
+
+#tab-dash .dash-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 17px; color: var(--ink-soft); }
+#tab-dash .dash-legend span { display: inline-flex; align-items: center; gap: 4px; }
+#tab-dash .dash-legend .px { width: 10px; height: 8px; }
+#tab-dash .dash-legend .px-target { box-shadow: none; border-top: var(--px) solid var(--ink); }
+
+/* ---- Detail line ---- */
+#tab-dash .dash-detail { margin-top: 10px; border-left: var(--px) solid var(--ink); padding: 2px 0 2px 10px; min-height: 44px; }
+#tab-dash .dash-detail-day { font-size: 12px; text-transform: uppercase; margin-bottom: 2px; }
+#tab-dash .dash-kv { display: flex; flex-wrap: wrap; gap: 0 14px; }
+#tab-dash .dash-kv b { font-weight: 400; color: var(--ink); background: var(--paper-2); padding: 0 3px; }
+
+/* ---- ASCII tables ---- */
+#tab-dash table { width: 100%; border-collapse: collapse; font-size: 20px; }
+#tab-dash .dash-ascii { border-top: var(--px) double var(--ink); border-bottom: var(--px) double var(--ink); margin-bottom: 10px; }
+#tab-dash .dash-ascii th { text-align: left; font-size: 11px; text-transform: uppercase; white-space: nowrap; padding: 4px 0; }
+#tab-dash .dash-ascii .dash-dots { width: 100%; min-width: 8px; padding: 0 4px; }
+#tab-dash .dash-ascii .dash-dots::before { content: ""; display: block; border-bottom: 2px dotted var(--ink-soft); transform: translateY(4px); }
+#tab-dash .dash-ascii .dash-v { text-align: right; white-space: nowrap; padding-right: 8px; }
+#tab-dash .dash-ascii .dash-note { font-size: 16px; white-space: nowrap; text-align: right; }
+#tab-dash .dash-note-line { font-size: 17px; margin: 6px 0 0; color: var(--ink-soft); }
+
+#tab-dash .dash-days { border-top: var(--px) double var(--ink); border-bottom: var(--px) double var(--ink); }
+#tab-dash .dash-days th { font-size: 11px; text-transform: uppercase; padding: 4px 2px; border-bottom: 2px dashed var(--ink); text-align: right; }
+#tab-dash .dash-days td { padding: 2px; text-align: right; }
+#tab-dash .dash-days th:first-child, #tab-dash .dash-days td:first-child { text-align: left; font-size: 12px; white-space: nowrap; }
+#tab-dash .dash-days tbody tr:nth-child(even) { background: var(--paper-2); }
+#tab-dash .dash-days tr.is-today td { background: var(--ink); color: var(--paper); }
+#tab-dash .dash-days tr.is-today .over-text { color: var(--tomato); }
+
+/* ---- History strip ---- */
+#tab-dash .dash-toggle { display: flex; gap: 8px; margin-bottom: 8px; }
+#tab-dash .dash-toggle button { min-height: 40px; padding: 6px 10px; font-size: 11px; }
+#tab-dash .dash-toggle button.is-on { background: var(--ink); color: var(--paper); }
+#tab-dash .dash-hist {
+  display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 2px;
+  border-bottom: var(--px) solid var(--ink); padding-bottom: 2px;
+}
+#tab-dash .dash-hcol { display: grid; grid-template-rows: repeat(10, 5px); row-gap: 1px; }
+#tab-dash .dash-hcol.is-today { outline: 2px dotted var(--ink); outline-offset: 1px; }
+#tab-dash .dash-hist-axis { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 4px; }
